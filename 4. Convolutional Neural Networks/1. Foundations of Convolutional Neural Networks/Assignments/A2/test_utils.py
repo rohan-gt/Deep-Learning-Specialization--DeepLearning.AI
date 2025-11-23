@@ -37,9 +37,18 @@ def summary(model):
     )
     result = []
     for layer in model.layers:
+        # Get output shape tuple
+        shape = None
+        if hasattr(layer, 'output_shape'):
+            shape = layer.output_shape
+        else:
+            out = getattr(layer, 'output', None)
+            if hasattr(out, 'shape'):
+                shape = tuple(out.shape)  # 🟢 convert KerasTensor shape to tuple
+
         descriptors = [
             layer.__class__.__name__,
-            layer.output_shape,
+            shape,
             layer.count_params(),
         ]
         if type(layer) == Conv2D:
@@ -58,6 +67,7 @@ def summary(model):
             descriptors.append(layer.activation.__name__)
         result.append(descriptors)
     return result
+
 
 
 def datatype_check(expected_output, target_output, error):
